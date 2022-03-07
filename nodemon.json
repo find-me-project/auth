@@ -1,0 +1,18 @@
+{
+  "watch": [
+    "src",
+    ".env"
+  ],
+  "ext": "ts",
+  "ignore": [
+    "node_modules/**",
+    "src/**/*.spec.ts",
+    "files/**/**",
+    ".git",
+    ".gitignore",
+    ".eslintrc.js",
+    ".eslintignore",
+    "dist"
+  ],
+  "exec": "yarn node -r tsconfig-paths/register -r ts-node/register ./src/index.ts"
+}

@@ -1,0 +1,31 @@
+version: "3.9"
+
+networks:
+  default:
+    name: find-me-net
+
+services:
+  redis:
+    container_name: redis
+    image: redis:latest
+    restart: on-failure
+    networks:
+      - default
+    ports:
+      - "6379:6379"
+
+  find-me-auth:
+    container_name: find-me-auth
+    restart: on-failure
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    networks:
+      - default
+    depends_on:
+      - redis
+    command: yarn serve
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
