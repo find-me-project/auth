@@ -1,5 +1,5 @@
 import { ClientSession } from 'mongoose';
-import { AccountType } from 'src/models/Account';
+import { AccountType, StatusEnum } from 'src/models/Account';
 import { AccountModel } from 'src/models/Account/schema';
 import { AccountDetailsModel } from 'src/models/AccountDetails/schema';
 import { AccountDetailsType } from 'src/models/AccountDetails';
@@ -120,6 +120,18 @@ export class AccountRepository implements IAccountRepository {
   async activate (id: string): Promise<void> {
     const account = await this.getById(id);
 
+    await AccountModel.updateOne(
+      { _id: account!._id },
+      {
+        $set: {
+          status: StatusEnum.VERIFIED,
+        },
+      },
+      {
+        session: this.session,
+      },
+    ).exec();
+
     await AccountDetailsModel.updateOne(
       { _id: (account!.details as AccountDetailsType)._id },
       {
@@ -213,7 +225,7 @@ export class AccountRepository implements IAccountRepository {
     ).exec();
 
     await AccountDetailsModel.updateOne(
-      { _id: (account!.details as AccountDetailsType)._id },
+      { _id: account!.details as string },
       {
         $unset: {
           countFailedRecoveryAttempts: 0,

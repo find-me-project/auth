@@ -41,6 +41,7 @@ export class PersonRepository implements IPersonRepository {
   async getAccount (id: string): Promise<AccountType | null> {
     const result = await AccountModel.findOne(
       { person: id },
+      null,
       {
         session: this.session,
       },

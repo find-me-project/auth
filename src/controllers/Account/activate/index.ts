@@ -15,7 +15,7 @@ async function method (request: Request, response: Response, session?: ClientSes
   const service = new AccountService(session);
   await service.activate(accountId!, code);
 
-  return response.success(undefined, 'SAVED');
+  return response.success(undefined, 'ACCOUNT_ACTIVATED');
 }
 
 export default {

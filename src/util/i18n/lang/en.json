@@ -61,5 +61,6 @@
 	"ACCESS_DATA_REQUIRED": "Access data is required",
 	"ACCESS_DATA_INVALID": "Access data is invalid",
 	"PASSWORD_INVALID": "Password is invalid",
-	"USER_DISCONNECTED": "User disconnected"
+	"USER_DISCONNECTED": "User disconnected",
+	"ACCOUNT_ACTIVATED": "Account activated"
 }
