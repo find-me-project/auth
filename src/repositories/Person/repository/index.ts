@@ -35,7 +35,7 @@ export class PersonRepository implements IPersonRepository {
       },
     ).exec();
 
-    return result.toJSON();
+    return result!.toJSON();
   }
 
   async getAccount (id: string): Promise<AccountType | null> {
@@ -57,6 +57,6 @@ export class PersonRepository implements IPersonRepository {
   static async existsById (id: string): Promise<boolean> {
     const result = await PersonModel.exists({ _id: id });
 
-    return result;
+    return !!result;
   }
 }

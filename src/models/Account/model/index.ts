@@ -36,7 +36,7 @@ export function validatePassword (password?: string): boolean {
 }
 
 export function getEncryptedPassword (password: string): string {
-  return hashSync(password!, genSaltSync(10));
+  return hashSync(password, genSaltSync(10));
 }
 
 /**

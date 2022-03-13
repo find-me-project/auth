@@ -33,7 +33,7 @@ export class AccountRepository implements IAccountRepository {
       email: email,
     });
 
-    return result;
+    return !!result;
   }
 
   static async existsByNickName (nickname: string): Promise<boolean> {
@@ -41,7 +41,7 @@ export class AccountRepository implements IAccountRepository {
       nickname: nickname,
     });
 
-    return result;
+    return !!result;
   }
 
   static async existsById (id: string): Promise<boolean> {
@@ -49,7 +49,7 @@ export class AccountRepository implements IAccountRepository {
       _id: id,
     });
 
-    return result;
+    return !!result;
   }
 
   async getById (id: string): Promise<AccountType | null> {

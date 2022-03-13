@@ -7,7 +7,7 @@ type SNSParamsType = {
 }
 
 export class SNSService {
-  private service: SNS
+  private service: SNS;
 
   constructor () {
     const {
