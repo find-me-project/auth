@@ -18,7 +18,7 @@ async function method (request: Request, response: Response, session?: ClientSes
     birthDate: birthDate,
   });
 
-  const accountService = new AccountService(session);
+  const accountService = new AccountService(session, true);
   const account = await accountService.create({
     nickname: nickname,
     email: email,

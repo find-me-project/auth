@@ -10,7 +10,7 @@ async function method (request: Request, response: Response, session?: ClientSes
     password,
   } = request.body;
 
-  const service = new AccountService(session);
+  const service = new AccountService(session, true);
   await service.recoverPassword(email, code, password);
 
   return response.success(undefined, 'SAVED');

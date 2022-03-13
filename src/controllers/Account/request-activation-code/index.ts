@@ -7,7 +7,7 @@ async function method (request: Request, response: Response, session?: ClientSes
     accountId,
   } = request.accessData!;
 
-  const service = new AccountService(session);
+  const service = new AccountService(session, true);
   await service.changeActivationCode(accountId!);
 
   return response.success(undefined, 'CHANGE_ACTIVATION_CODE_REQUESTED');

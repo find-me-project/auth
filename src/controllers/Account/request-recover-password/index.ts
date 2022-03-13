@@ -8,7 +8,7 @@ async function method (request: Request, response: Response, session?: ClientSes
     email,
   } = request.body;
 
-  const service = new AccountService(session);
+  const service = new AccountService(session, true);
   await service.requestRecoverPassword(email);
 
   return response.success(undefined, 'CHANGE_PASSWORD_REQUESTED');

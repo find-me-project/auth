@@ -11,12 +11,19 @@ import IAccountRepository from 'src/repositories/Account';
 import { generateTokenId } from 'src/routes/middlewares/auth/util';
 import randomCode from 'src/util/code/random-code';
 import ValidationError from 'src/util/error/validation-error';
+import { SNSService } from 'src/util/aws';
 
 export class AccountService {
   private repository: IAccountRepository;
 
-  constructor (session?: ClientSession) {
+  private notification?: SNSService;
+
+  constructor (session?: ClientSession, notificationService?: boolean) {
     this.repository = new AccountRepository(session);
+
+    if (notificationService) {
+      this.notification = new SNSService();
+    }
   }
 
   private static async validateNewAccount (data: AccountType): Promise<boolean> {
@@ -40,7 +47,12 @@ export class AccountService {
 
     const result = await this.repository.create(account);
 
-    // TODO: Send verification email
+    if (this.notification) {
+      const { nickname, email } = result;
+      const { activationCode } = account.details as AccountDetailsType;
+
+      await this.notification.sendVerificationEmail(nickname, email, activationCode!);
+    }
 
     return result;
   }
@@ -68,7 +80,13 @@ export class AccountService {
 
     await this.repository.changeActivationCode(id, randomCode(8));
 
-    // TODO: Send email with activation code
+    if (this.notification) {
+      const account = await this.repository.getById(id);
+      const { nickname, email } = account!;
+      const { activationCode } = account!.details as AccountDetailsType;
+
+      await this.notification.sendVerificationEmail(nickname, email, activationCode!);
+    }
   }
 
   private async canActivate (id: string, code: string): Promise<boolean> {
@@ -167,6 +185,13 @@ export class AccountService {
 
     const code = randomCode(8);
     await this.repository.requestRecoverPassword(account._id!, code);
+
+    if (this.notification) {
+      const { email } = account;
+      const { recoverCode } = account.details as AccountDetailsType;
+
+      await this.notification.sendRecoverPasswordEmail(email, recoverCode!);
+    }
   }
 
   private async canRecoverPassword (account: AccountType, code: string, password: string): Promise<boolean> {
