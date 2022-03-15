@@ -1,4 +1,7 @@
 import { faker } from '@faker-js/faker';
+import {
+  describe, it, expect, jest,
+} from '@jest/globals';
 import { PersonRepository } from '../../..';
 import { AccountModel } from '../../../../models/Account/schema';
 import makePerson from '../../../../models/Person/model';
@@ -18,8 +21,8 @@ describe('person repository', () => {
         birthDate: new Date('2000-01-01'),
       });
 
-      jest.spyOn(PersonModel.prototype, 'save').mockResolvedValueOnce(null);
-      jest.spyOn(PersonModel.prototype, 'toJSON').mockResolvedValueOnce(person);
+      jest.spyOn(PersonModel.prototype, 'save').mockReturnValueOnce(null);
+      jest.spyOn(PersonModel.prototype, 'toJSON').mockReturnValueOnce(person);
 
       const result = await repository.create(person);
 
@@ -41,7 +44,7 @@ describe('person repository', () => {
 
       personFindOneAndUpdateSpy.mockImplementationOnce((): any => ({
         exec: jest.fn().mockImplementationOnce(() => ({
-          toJSON: jest.fn().mockResolvedValueOnce(person),
+          toJSON: jest.fn().mockReturnValueOnce(person),
         })),
       }));
 
@@ -65,7 +68,7 @@ describe('person repository', () => {
 
       accountFindOneSpy.mockImplementationOnce((): any => ({
         exec: jest.fn().mockImplementationOnce(() => ({
-          toJSON: jest.fn().mockResolvedValueOnce({ _id: accountId }),
+          toJSON: jest.fn().mockReturnValueOnce({ _id: accountId }),
         })),
       }));
 
@@ -84,7 +87,7 @@ describe('person repository', () => {
       const id = faker.datatype.uuid();
 
       accountFindOneSpy.mockImplementationOnce((): any => ({
-        exec: jest.fn().mockResolvedValueOnce(null),
+        exec: jest.fn().mockReturnValueOnce(null),
       }));
 
       const result = await repository.getAccount(id);
@@ -101,7 +104,7 @@ describe('person repository', () => {
       expect.assertions(1);
 
       const id = faker.datatype.uuid();
-      jest.spyOn(PersonModel, 'exists').mockResolvedValueOnce({ _id: id } as any);
+      jest.spyOn(PersonModel, 'exists').mockReturnValueOnce({ _id: id } as any);
 
       const result = await PersonRepository.existsById(id);
 
@@ -112,7 +115,7 @@ describe('person repository', () => {
       expect.assertions(1);
 
       const id = faker.datatype.uuid();
-      jest.spyOn(PersonModel, 'exists').mockResolvedValueOnce(null);
+      jest.spyOn(PersonModel, 'exists').mockReturnValueOnce(null as any);
 
       const result = await PersonRepository.existsById(id);
 

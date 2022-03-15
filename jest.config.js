@@ -1,5 +1,5 @@
 const { pathsToModuleNameMapper } = require('ts-jest');
-const { compilerOptions } = require('./tsconfig.test.json');
+const { compilerOptions } = require('./tsconfig.json');
 
 /*
  * For a detailed explanation regarding each configuration property, visit:
@@ -15,7 +15,7 @@ module.exports = {
   ],
   globals: {
     'ts-jest': {
-      tsconfig: 'tsconfig.test.json',
+      tsconfig: 'tsconfig.json',
     },
   },
   setupFiles: ['dotenv/config'],

@@ -1,3 +1,4 @@
+import { describe, it, expect } from '@jest/globals';
 import getLocale from '../get-locale';
 
 describe('get locale', () => {

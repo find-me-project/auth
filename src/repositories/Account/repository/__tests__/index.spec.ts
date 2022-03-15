@@ -1,4 +1,7 @@
 import { faker } from '@faker-js/faker';
+import {
+  describe, it, expect, jest,
+} from '@jest/globals';
 import { AccountRepository } from '../../..';
 import { AccountDetailsModel } from '../../../../models/AccountDetails/schema';
 import { AccountModel } from '../../../../models/Account/schema';
@@ -16,10 +19,10 @@ describe('account repository', () => {
     it('should create a new account', async () => {
       expect.assertions(2);
 
-      jest.spyOn(AccountDetailsModel.prototype, 'save').mockResolvedValueOnce(null);
-      jest.spyOn(AccountModel.prototype, 'save').mockResolvedValueOnce(null);
-      jest.spyOn(AccountModel.prototype, 'populate').mockResolvedValueOnce(null);
-      jest.spyOn(AccountModel.prototype, 'toJSON').mockResolvedValueOnce({ password: 'password', details: 'details' });
+      jest.spyOn(AccountDetailsModel.prototype, 'save').mockReturnValueOnce(null);
+      jest.spyOn(AccountModel.prototype, 'save').mockReturnValueOnce(null);
+      jest.spyOn(AccountModel.prototype, 'populate').mockReturnValueOnce(null);
+      jest.spyOn(AccountModel.prototype, 'toJSON').mockReturnValueOnce({ password: 'password', details: 'details' });
 
       const account = makeAccount({
         nickname: faker.name.firstName(),
@@ -38,7 +41,7 @@ describe('account repository', () => {
     it('should return true if the account exists', async () => {
       expect.assertions(1);
 
-      jest.spyOn(AccountModel, 'exists').mockResolvedValueOnce({ _id: faker.datatype.uuid() } as any);
+      jest.spyOn(AccountModel, 'exists').mockReturnValueOnce({ _id: faker.datatype.uuid() } as any);
 
       const result = await AccountRepository.existsByEmail(faker.internet.email());
 
@@ -48,7 +51,7 @@ describe('account repository', () => {
     it('should return false if the account not exists', async () => {
       expect.assertions(1);
 
-      jest.spyOn(AccountModel, 'exists').mockResolvedValueOnce(null);
+      jest.spyOn(AccountModel, 'exists').mockReturnValueOnce(null as any);
 
       const result = await AccountRepository.existsByEmail(faker.internet.email());
 
@@ -60,7 +63,7 @@ describe('account repository', () => {
     it('should return true if the account exists', async () => {
       expect.assertions(1);
 
-      jest.spyOn(AccountModel, 'exists').mockResolvedValueOnce({ _id: faker.datatype.uuid() } as any);
+      jest.spyOn(AccountModel, 'exists').mockReturnValueOnce({ _id: faker.datatype.uuid() } as any);
 
       const result = await AccountRepository.existsByNickName(faker.name.firstName());
 
@@ -70,7 +73,7 @@ describe('account repository', () => {
     it('should return false if the account not exists', async () => {
       expect.assertions(1);
 
-      jest.spyOn(AccountModel, 'exists').mockResolvedValueOnce(null);
+      jest.spyOn(AccountModel, 'exists').mockReturnValueOnce(null as any);
 
       const result = await AccountRepository.existsByNickName(faker.name.firstName());
 
@@ -83,7 +86,7 @@ describe('account repository', () => {
       expect.assertions(1);
 
       const id = faker.datatype.uuid();
-      jest.spyOn(AccountModel, 'exists').mockResolvedValueOnce({ _id: id } as any);
+      jest.spyOn(AccountModel, 'exists').mockReturnValueOnce({ _id: id } as any);
 
       const result = await AccountRepository.existsById(id);
 
@@ -93,7 +96,7 @@ describe('account repository', () => {
     it('should return false if the account not exists', async () => {
       expect.assertions(1);
 
-      jest.spyOn(AccountModel, 'exists').mockResolvedValueOnce(null);
+      jest.spyOn(AccountModel, 'exists').mockReturnValueOnce(null as any);
 
       const result = await AccountRepository.existsById(faker.datatype.uuid());
 
@@ -109,7 +112,7 @@ describe('account repository', () => {
       accountFindOneSpy.mockImplementationOnce((): any => ({
         populate: jest.fn().mockImplementationOnce(() => ({
           populate: jest.fn().mockImplementationOnce(() => ({
-            exec: jest.fn().mockResolvedValueOnce({ _id: id } as any),
+            exec: jest.fn().mockReturnValueOnce({ _id: id } as any),
           })),
         })),
       }));
@@ -127,7 +130,7 @@ describe('account repository', () => {
       accountFindOneSpy.mockImplementationOnce((): any => ({
         populate: jest.fn().mockImplementationOnce(() => ({
           populate: jest.fn().mockImplementationOnce(() => ({
-            exec: jest.fn().mockResolvedValueOnce(null),
+            exec: jest.fn().mockReturnValueOnce(null),
           })),
         })),
       }));
@@ -146,7 +149,7 @@ describe('account repository', () => {
       accountFindOneSpy.mockImplementationOnce((): any => ({
         populate: jest.fn().mockImplementationOnce(() => ({
           populate: jest.fn().mockImplementationOnce(() => ({
-            exec: jest.fn().mockResolvedValueOnce({ _id: id } as any),
+            exec: jest.fn().mockReturnValueOnce({ _id: id } as any),
           })),
         })),
       }));
@@ -164,7 +167,7 @@ describe('account repository', () => {
       accountFindOneSpy.mockImplementationOnce((): any => ({
         populate: jest.fn().mockImplementationOnce(() => ({
           populate: jest.fn().mockImplementationOnce(() => ({
-            exec: jest.fn().mockResolvedValueOnce(null),
+            exec: jest.fn().mockReturnValueOnce(null),
           })),
         })),
       }));
@@ -183,7 +186,7 @@ describe('account repository', () => {
       accountFindOneSpy.mockImplementationOnce((): any => ({
         populate: jest.fn().mockImplementationOnce(() => ({
           populate: jest.fn().mockImplementationOnce(() => ({
-            exec: jest.fn().mockResolvedValueOnce({ _id: id } as any),
+            exec: jest.fn().mockReturnValueOnce({ _id: id } as any),
           })),
         })),
       }));
@@ -201,7 +204,7 @@ describe('account repository', () => {
       accountFindOneSpy.mockImplementationOnce((): any => ({
         populate: jest.fn().mockImplementationOnce(() => ({
           populate: jest.fn().mockImplementationOnce(() => ({
-            exec: jest.fn().mockResolvedValueOnce(null),
+            exec: jest.fn().mockReturnValueOnce(null),
           })),
         })),
       }));
@@ -380,7 +383,7 @@ describe('account repository', () => {
       });
 
       accountFindOneAndUpdateSpy.mockImplementationOnce((): any => ({
-        exec: jest.fn().mockResolvedValueOnce({ ...account, details: (account.details as AccountDetailsType)._id }),
+        exec: jest.fn().mockReturnValueOnce({ ...account, details: (account.details as AccountDetailsType)._id }),
       }));
       accountDetailsUpdateOneSpy.mockImplementationOnce((): any => ({
         exec: jest.fn(),

@@ -1,4 +1,7 @@
 import { faker } from '@faker-js/faker';
+import {
+  describe, it, expect, jest,
+} from '@jest/globals';
 import { TokenBlacklistService } from '../..';
 import { TokenBlacklistRepository } from '../../../repositories';
 
@@ -32,6 +35,8 @@ describe('token blacklist service', () => {
 
       expect(result).toBeTruthy();
       expect(tokenBlacklistExistsByIdSpy).toHaveBeenCalledTimes(1);
+
+      tokenBlacklistExistsByIdSpy.mockReset();
     });
 
     it('should return false if the token not exists', async () => {
@@ -43,6 +48,8 @@ describe('token blacklist service', () => {
 
       expect(result).toBeFalsy();
       expect(tokenBlacklistExistsByIdSpy).toHaveBeenCalledTimes(1);
+
+      tokenBlacklistExistsByIdSpy.mockReset();
     });
   });
 });

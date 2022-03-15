@@ -1,3 +1,4 @@
+import { describe, it, expect } from '@jest/globals';
 import { TokenBlacklistRepository } from '../../..';
 import ValidationError from '../../../../util/error/validation-error';
 

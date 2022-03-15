@@ -19,16 +19,17 @@
       "database/*": ["src/database/*"],
       "routes/*": ["src/routes/*"]
     },
-    "typeRoots": [
-      "@types",
-      "*.d.ts"
-    ],
     "esModuleInterop": true,
 
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "typeRoots": [
+      "@types"
+    ]
   },
-  "include": ["src/**/*"],
+  "include": [
+    "src/**/*"
+  ],
   "exclude": [
     "node_modules",
     "node_modules/**/*",

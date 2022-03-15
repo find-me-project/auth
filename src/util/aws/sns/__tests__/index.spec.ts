@@ -1,4 +1,7 @@
 import { faker } from '@faker-js/faker';
+import {
+  describe, it, expect, jest,
+} from '@jest/globals';
 import ValidationError from '../../../error/validation-error';
 import { SNSService } from '../..';
 import randomCode from '../../../code/random-code';
@@ -63,7 +66,7 @@ describe('sns service', () => {
 
       jest.mock('aws-sdk/clients/sns', () => jest.fn().mockImplementationOnce(() => ({
         publish: jest.fn().mockImplementationOnce(() => ({
-          promise: jest.fn().mockResolvedValueOnce(null),
+          promise: jest.fn().mockReturnValueOnce(null),
         })),
       })));
       const service = new SNSService();
