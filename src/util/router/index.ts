@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
-  NextFunction, Request, Response, Router,
+  NextFunction, Request, Router,
 } from 'express';
 import { isEmpty } from 'lodash';
 import getMessage, { MessageType } from '../i18n/methods/get-message';
@@ -27,7 +27,7 @@ function getJsonResult (resultObject?: any, message?: MessageType | string, mess
 }
 
 export default function init (router: Router): void {
-  router.use((request: Request, response: Response, next: NextFunction): void => {
+  router.use((request: Request, response: any, next: NextFunction): void => {
     response.success = function success (resultObject?: any, message?: MessageType | string) {
       const result = getJsonResult(resultObject, message, MESSAGES.INFORMATION);
 

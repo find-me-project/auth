@@ -82,9 +82,10 @@ describe('account repository', () => {
     it('should return true if the account exists', async () => {
       expect.assertions(1);
 
-      jest.spyOn(AccountModel, 'exists').mockResolvedValueOnce({ _id: faker.datatype.uuid() } as any);
+      const id = faker.datatype.uuid();
+      jest.spyOn(AccountModel, 'exists').mockResolvedValueOnce({ _id: id } as any);
 
-      const result = await AccountRepository.existsById(faker.datatype.uuid());
+      const result = await AccountRepository.existsById(id);
 
       expect(result).toBeTruthy();
     });

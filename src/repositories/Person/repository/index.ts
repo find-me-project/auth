@@ -38,6 +38,12 @@ export class PersonRepository implements IPersonRepository {
     return result!.toJSON();
   }
 
+  /**
+   * Get account by person id
+   *
+   * @param id - Person identifier (Person._id)
+   * @returns account (AccountType) or null
+   */
   async getAccount (id: string): Promise<AccountType | null> {
     const result = await AccountModel.findOne(
       { person: id },

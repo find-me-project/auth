@@ -20,7 +20,8 @@
       "routes/*": ["src/routes/*"]
     },
     "typeRoots": [
-      "@types"
+      "@types",
+      "*.d.ts"
     ],
     "esModuleInterop": true,
 

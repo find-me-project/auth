@@ -1,4 +1,5 @@
-import { createClient, RedisClientType } from 'redis';
+import { createClient } from 'redis';
+import type { RedisClientType } from 'redis';
 import { TokenBlacklistType } from 'src/models/TokenBlacklist';
 import ValidationError from 'src/util/error/validation-error';
 import ITokenBlacklistRepository from '..';
