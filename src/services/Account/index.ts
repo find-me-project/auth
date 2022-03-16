@@ -188,9 +188,8 @@ export class AccountService {
 
     if (this.notification) {
       const { email } = account;
-      const { recoverCode } = account.details as AccountDetailsType;
 
-      await this.notification.sendRecoverPasswordEmail(email, recoverCode!);
+      await this.notification.sendRecoverPasswordEmail(email, code);
     }
   }
 
