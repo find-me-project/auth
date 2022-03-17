@@ -41,5 +41,6 @@ module.exports = {
     '!src/util/router/**',
     '!**/*.d.ts',
     '!src/controllers/**',
+    '!src/repositories/TokenBlacklist/**',
   ],
 };

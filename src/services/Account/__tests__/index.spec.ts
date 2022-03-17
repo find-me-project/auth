@@ -4,7 +4,7 @@ import {
 } from '@jest/globals';
 import { subMinutes } from 'date-fns';
 import { AccountService } from '../..';
-import { StatusEnum } from '../../../models/Account';
+import { RoleEnum, StatusEnum } from '../../../models/Account';
 import { getEncryptedPassword } from '../../../models/Account/model';
 import { AccountRepository } from '../../../repositories';
 import ValidationError from '../../../util/error/validation-error';
@@ -695,6 +695,507 @@ describe('account service', () => {
 
       accountGetByEmailSpy.mockReset();
       accountRequestRecoverPasswordSpy.mockReset();
+    });
+  });
+
+  describe('recover password', () => {
+    it('should recover account password', async () => {
+      expect.assertions(2);
+
+      const service = new AccountService();
+
+      const currentPassword = faker.internet.password(20, false, /\w/, '@2');
+      const account = {
+        _id: faker.datatype.uuid(),
+        status: StatusEnum.VERIFIED,
+        email: faker.internet.email(),
+        password: getEncryptedPassword(currentPassword),
+        details: {
+          recoverCode: '01234567',
+          recoverCodeDate: subMinutes(new Date(), 10),
+        },
+      };
+      const accountGetByEmailSpy = jest.spyOn(AccountRepository.prototype, 'getByEmail').mockResolvedValueOnce(account as any);
+      const accountRecoverPasswordSpy = jest.spyOn(AccountRepository.prototype, 'recoverPassword').mockResolvedValueOnce();
+
+      await service.recoverPassword(account.email, account.details.recoverCode, faker.internet.password(20, false, /\w/, '@2'));
+
+      expect(accountGetByEmailSpy).toHaveBeenCalledTimes(1);
+      expect(accountRecoverPasswordSpy).toHaveBeenCalledTimes(1);
+
+      accountGetByEmailSpy.mockReset();
+      accountRecoverPasswordSpy.mockReset();
+    });
+
+    it('should throw an exception if account is not found', async () => {
+      expect.assertions(3);
+
+      const service = new AccountService();
+
+      const accountGetByEmailSpy = jest.spyOn(AccountRepository.prototype, 'getByEmail').mockResolvedValueOnce(null as any);
+      const accountRecoverPasswordSpy = jest.spyOn(AccountRepository.prototype, 'recoverPassword').mockResolvedValueOnce();
+
+      const result = service.recoverPassword(
+        faker.internet.email(),
+        '01234567',
+        faker.internet.password(20, false, /\w/, '@2'),
+      );
+
+      await expect(result).rejects.toThrow(new ValidationError('ACCOUNT_NOT_FOUND'));
+      expect(accountGetByEmailSpy).toHaveBeenCalledTimes(1);
+      expect(accountRecoverPasswordSpy).toHaveBeenCalledTimes(0);
+
+      accountGetByEmailSpy.mockReset();
+      accountRecoverPasswordSpy.mockReset();
+    });
+
+    it('should throw an exception if account is disabled', async () => {
+      expect.assertions(3);
+
+      const service = new AccountService();
+
+      const account = {
+        _id: faker.datatype.uuid(),
+        status: StatusEnum.DISABLED,
+        email: faker.internet.email(),
+        details: {
+          recoverCode: '01234567',
+        },
+      };
+      const accountGetByEmailSpy = jest.spyOn(AccountRepository.prototype, 'getByEmail').mockResolvedValueOnce(account as any);
+      const accountRecoverPasswordSpy = jest.spyOn(AccountRepository.prototype, 'recoverPassword').mockResolvedValueOnce();
+
+      const result = service.recoverPassword(
+        account.email,
+        account.details.recoverCode,
+        faker.internet.password(20, false, /\w/, '@2'),
+      );
+
+      await expect(result).rejects.toThrow(new ValidationError('ACCOUNT_DISABLED'));
+      expect(accountGetByEmailSpy).toHaveBeenCalledTimes(1);
+      expect(accountRecoverPasswordSpy).toHaveBeenCalledTimes(0);
+
+      accountGetByEmailSpy.mockReset();
+      accountRecoverPasswordSpy.mockReset();
+    });
+
+    it('should throw an exception if account not requested recover password', async () => {
+      expect.assertions(3);
+
+      const service = new AccountService();
+
+      const account = {
+        _id: faker.datatype.uuid(),
+        status: StatusEnum.VERIFIED,
+        email: faker.internet.email(),
+        details: {
+        },
+      };
+      const accountGetByEmailSpy = jest.spyOn(AccountRepository.prototype, 'getByEmail').mockResolvedValueOnce(account as any);
+      const accountRecoverPasswordSpy = jest.spyOn(AccountRepository.prototype, 'recoverPassword').mockResolvedValueOnce();
+
+      const result = service.recoverPassword(
+        account.email,
+        '01234567',
+        faker.internet.password(20, false, /\w/, '@2'),
+      );
+
+      await expect(result).rejects.toThrow(new ValidationError('ACCOUNT_NOT_REQUESTED_RECOVER'));
+      expect(accountGetByEmailSpy).toHaveBeenCalledTimes(1);
+      expect(accountRecoverPasswordSpy).toHaveBeenCalledTimes(0);
+
+      accountGetByEmailSpy.mockReset();
+      accountRecoverPasswordSpy.mockReset();
+    });
+
+    it('should throw an exception if account has many failed recovery attempts', async () => {
+      expect.assertions(3);
+
+      const service = new AccountService();
+
+      const account = {
+        _id: faker.datatype.uuid(),
+        status: StatusEnum.VERIFIED,
+        email: faker.internet.email(),
+        details: {
+          recoverCode: '01234567',
+          recoverCodeDate: subMinutes(new Date(), 10),
+          countFailedRecoveryAttempts: 3,
+        },
+      };
+      const accountGetByEmailSpy = jest.spyOn(AccountRepository.prototype, 'getByEmail').mockResolvedValueOnce(account as any);
+      const accountRecoverPasswordSpy = jest.spyOn(AccountRepository.prototype, 'recoverPassword').mockResolvedValueOnce();
+
+      const result = service.recoverPassword(
+        account.email,
+        account.details.recoverCode,
+        faker.internet.password(20, false, /\w/, '@2'),
+      );
+
+      await expect(result).rejects.toThrow(new ValidationError('ACCOUNT_MANY_FAILED_RECOVERY_ATTEMPTS'));
+      expect(accountGetByEmailSpy).toHaveBeenCalledTimes(1);
+      expect(accountRecoverPasswordSpy).toHaveBeenCalledTimes(0);
+
+      accountGetByEmailSpy.mockReset();
+      accountRecoverPasswordSpy.mockReset();
+    });
+
+    it('should throw an exception if account recover code is expired', async () => {
+      expect.assertions(3);
+
+      const service = new AccountService();
+
+      const account = {
+        _id: faker.datatype.uuid(),
+        status: StatusEnum.VERIFIED,
+        email: faker.internet.email(),
+        details: {
+          recoverCode: '01234567',
+          recoverCodeDate: subMinutes(new Date(), 30),
+        },
+      };
+      const accountGetByEmailSpy = jest.spyOn(AccountRepository.prototype, 'getByEmail').mockResolvedValueOnce(account as any);
+      const accountRecoverPasswordSpy = jest.spyOn(AccountRepository.prototype, 'recoverPassword').mockResolvedValueOnce();
+
+      const result = service.recoverPassword(
+        account.email,
+        account.details.recoverCode,
+        faker.internet.password(20, false, /\w/, '@2'),
+      );
+
+      await expect(result).rejects.toThrow(new ValidationError('ACCOUNT_RECOVER_CODE_EXPIRED'));
+      expect(accountGetByEmailSpy).toHaveBeenCalledTimes(1);
+      expect(accountRecoverPasswordSpy).toHaveBeenCalledTimes(0);
+
+      accountGetByEmailSpy.mockReset();
+      accountRecoverPasswordSpy.mockReset();
+    });
+
+    it('should throw an exception if account recover code is invalid', async () => {
+      expect.assertions(4);
+
+      const service = new AccountService();
+
+      const account = {
+        _id: faker.datatype.uuid(),
+        status: StatusEnum.VERIFIED,
+        email: faker.internet.email(),
+        details: {
+          recoverCode: '01234567',
+          recoverCodeDate: subMinutes(new Date(), 10),
+        },
+      };
+      const accountGetByEmailSpy = jest.spyOn(AccountRepository.prototype, 'getByEmail').mockResolvedValueOnce(account as any);
+      const accountRecoverPasswordSpy = jest.spyOn(AccountRepository.prototype, 'recoverPassword').mockResolvedValueOnce();
+      const accountIncreaseFailedRecoverPasswordSpy = jest.spyOn(AccountRepository.prototype, 'increaseFailedRecoverPassword').mockResolvedValueOnce();
+
+      const result = service.recoverPassword(
+        account.email,
+        'invalid_code',
+        faker.internet.password(20, false, /\w/, '@2'),
+      );
+
+      await expect(result).rejects.toThrow(new ValidationError('ACCOUNT_RECOVER_CODE_INVALID'));
+      expect(accountGetByEmailSpy).toHaveBeenCalledTimes(1);
+      expect(accountRecoverPasswordSpy).toHaveBeenCalledTimes(0);
+      expect(accountIncreaseFailedRecoverPasswordSpy).toHaveBeenCalledTimes(1);
+
+      accountGetByEmailSpy.mockReset();
+      accountRecoverPasswordSpy.mockReset();
+      accountIncreaseFailedRecoverPasswordSpy.mockReset();
+    });
+
+    it('should throw an exception if new password is the same as the current', async () => {
+      expect.assertions(4);
+
+      const service = new AccountService();
+
+      const currentPassword = faker.internet.password(20, false, /\w/, '@2');
+      const account = {
+        _id: faker.datatype.uuid(),
+        status: StatusEnum.VERIFIED,
+        email: faker.internet.email(),
+        password: getEncryptedPassword(currentPassword),
+        details: {
+          recoverCode: '01234567',
+          recoverCodeDate: subMinutes(new Date(), 10),
+        },
+      };
+      const accountGetByEmailSpy = jest.spyOn(AccountRepository.prototype, 'getByEmail').mockResolvedValueOnce(account as any);
+      const accountRecoverPasswordSpy = jest.spyOn(AccountRepository.prototype, 'recoverPassword').mockResolvedValueOnce();
+      const accountIncreaseFailedRecoverPasswordSpy = jest.spyOn(AccountRepository.prototype, 'increaseFailedRecoverPassword').mockResolvedValueOnce();
+
+      const result = service.recoverPassword(
+        account.email,
+        account.details.recoverCode,
+        currentPassword,
+      );
+
+      await expect(result).rejects.toThrow(new ValidationError('CURRENT_PASSWORD_SAME_NEW_PASSWORD'));
+      expect(accountGetByEmailSpy).toHaveBeenCalledTimes(1);
+      expect(accountRecoverPasswordSpy).toHaveBeenCalledTimes(0);
+      expect(accountIncreaseFailedRecoverPasswordSpy).toHaveBeenCalledTimes(0);
+
+      accountGetByEmailSpy.mockReset();
+      accountRecoverPasswordSpy.mockReset();
+      accountIncreaseFailedRecoverPasswordSpy.mockReset();
+    });
+  });
+
+  describe('sign in', () => {
+    it('should sign in by email', async () => {
+      expect.assertions(4);
+
+      const service = new AccountService();
+
+      const currentPassword = faker.internet.password(20, false, /\w/, '@2');
+      const account = {
+        _id: faker.datatype.uuid(),
+        status: StatusEnum.VERIFIED,
+        role: RoleEnum.DEFAULT,
+        email: faker.internet.email(),
+        password: getEncryptedPassword(currentPassword),
+        person: faker.datatype.uuid(),
+        details: {
+        },
+      };
+      const accountGetByEmailSpy = jest.spyOn(AccountRepository.prototype, 'getByEmail').mockResolvedValueOnce(account as any);
+      const accountGetByNicknameSpy = jest.spyOn(AccountRepository.prototype, 'getByNickname');
+      const saveLastSignInSpy = jest.spyOn(AccountRepository.prototype, 'saveLastSignIn').mockResolvedValueOnce();
+
+      const result = await service.signIn(account.email, currentPassword, false);
+
+      expect(result).toBeDefined();
+      expect(accountGetByEmailSpy).toHaveBeenCalledTimes(1);
+      expect(accountGetByNicknameSpy).toHaveBeenCalledTimes(0);
+      expect(saveLastSignInSpy).toHaveBeenCalledTimes(1);
+
+      accountGetByEmailSpy.mockReset();
+      accountGetByNicknameSpy.mockReset();
+      saveLastSignInSpy.mockReset();
+    });
+
+    it('should sign in by nickname', async () => {
+      expect.assertions(4);
+
+      const service = new AccountService();
+
+      const currentPassword = faker.internet.password(20, false, /\w/, '@2');
+      const account = {
+        _id: faker.datatype.uuid(),
+        status: StatusEnum.VERIFIED,
+        role: RoleEnum.DEFAULT,
+        email: faker.internet.email(),
+        nickname: faker.name.firstName(),
+        password: getEncryptedPassword(currentPassword),
+        person: faker.datatype.uuid(),
+        details: {
+        },
+      };
+      const accountGetByEmailSpy = jest.spyOn(AccountRepository.prototype, 'getByEmail');
+      const accountGetByNicknameSpy = jest.spyOn(AccountRepository.prototype, 'getByNickname').mockResolvedValueOnce(account as any);
+      const saveLastSignInSpy = jest.spyOn(AccountRepository.prototype, 'saveLastSignIn').mockResolvedValueOnce();
+
+      const result = await service.signIn(account.nickname, currentPassword, true);
+
+      expect(result).toBeDefined();
+      expect(accountGetByEmailSpy).toHaveBeenCalledTimes(0);
+      expect(accountGetByNicknameSpy).toHaveBeenCalledTimes(1);
+      expect(saveLastSignInSpy).toHaveBeenCalledTimes(1);
+
+      accountGetByEmailSpy.mockReset();
+      accountGetByNicknameSpy.mockReset();
+      saveLastSignInSpy.mockReset();
+    });
+
+    it('should throw an exception if account not found', async () => {
+      expect.assertions(4);
+
+      const service = new AccountService();
+
+      const currentPassword = faker.internet.password(20, false, /\w/, '@2');
+      const accountGetByEmailSpy = jest.spyOn(AccountRepository.prototype, 'getByEmail').mockResolvedValueOnce(null as any);
+      const accountGetByNicknameSpy = jest.spyOn(AccountRepository.prototype, 'getByNickname');
+      const saveLastSignInSpy = jest.spyOn(AccountRepository.prototype, 'saveLastSignIn');
+
+      const result = service.signIn(faker.internet.email(), currentPassword, false);
+
+      await expect(result).rejects.toThrow(new ValidationError('ACCOUNT_NOT_FOUND'));
+      expect(accountGetByEmailSpy).toHaveBeenCalledTimes(1);
+      expect(accountGetByNicknameSpy).toHaveBeenCalledTimes(0);
+      expect(saveLastSignInSpy).toHaveBeenCalledTimes(0);
+
+      accountGetByEmailSpy.mockReset();
+      accountGetByNicknameSpy.mockReset();
+      saveLastSignInSpy.mockReset();
+    });
+
+    it('should throw an exception if account is disabled', async () => {
+      expect.assertions(4);
+
+      const service = new AccountService();
+
+      const currentPassword = faker.internet.password(20, false, /\w/, '@2');
+      const account = {
+        _id: faker.datatype.uuid(),
+        status: StatusEnum.DISABLED,
+        role: RoleEnum.DEFAULT,
+        email: faker.internet.email(),
+        password: getEncryptedPassword(currentPassword),
+        person: faker.datatype.uuid(),
+        details: {
+        },
+      };
+      const accountGetByEmailSpy = jest.spyOn(AccountRepository.prototype, 'getByEmail').mockResolvedValueOnce(account as any);
+      const accountGetByNicknameSpy = jest.spyOn(AccountRepository.prototype, 'getByNickname');
+      const saveLastSignInSpy = jest.spyOn(AccountRepository.prototype, 'saveLastSignIn');
+
+      const result = service.signIn(account.email, currentPassword, false);
+
+      await expect(result).rejects.toThrow(new ValidationError('ACCOUNT_DISABLED'));
+      expect(accountGetByEmailSpy).toHaveBeenCalledTimes(1);
+      expect(accountGetByNicknameSpy).toHaveBeenCalledTimes(0);
+      expect(saveLastSignInSpy).toHaveBeenCalledTimes(0);
+
+      accountGetByEmailSpy.mockReset();
+      accountGetByNicknameSpy.mockReset();
+      saveLastSignInSpy.mockReset();
+    });
+
+    it('should throw an exception if many failed sign in attempts are made', async () => {
+      expect.assertions(4);
+
+      const service = new AccountService();
+
+      const currentPassword = faker.internet.password(20, false, /\w/, '@2');
+      const account = {
+        _id: faker.datatype.uuid(),
+        status: StatusEnum.VERIFIED,
+        role: RoleEnum.DEFAULT,
+        email: faker.internet.email(),
+        password: getEncryptedPassword(currentPassword),
+        person: faker.datatype.uuid(),
+        details: {
+          lastFailedSignInAttemptDate: new Date(),
+          countFailedSignInAttempts: 4,
+        },
+      };
+      const accountGetByEmailSpy = jest.spyOn(AccountRepository.prototype, 'getByEmail').mockResolvedValueOnce(account as any);
+      const accountGetByNicknameSpy = jest.spyOn(AccountRepository.prototype, 'getByNickname');
+      const saveLastSignInSpy = jest.spyOn(AccountRepository.prototype, 'saveLastSignIn');
+
+      const result = service.signIn(account.email, currentPassword, false);
+
+      await expect(result).rejects.toThrow(new ValidationError('SIGN_IN_MANY_FAILED_ATTEMPTS', { value: 2 }));
+      expect(accountGetByEmailSpy).toHaveBeenCalledTimes(1);
+      expect(accountGetByNicknameSpy).toHaveBeenCalledTimes(0);
+      expect(saveLastSignInSpy).toHaveBeenCalledTimes(0);
+
+      accountGetByEmailSpy.mockReset();
+      accountGetByNicknameSpy.mockReset();
+      saveLastSignInSpy.mockReset();
+    });
+
+    it('should throw an exception if many failed sign in attempts are made (delay)', async () => {
+      expect.assertions(4);
+
+      const service = new AccountService();
+
+      const currentPassword = faker.internet.password(20, false, /\w/, '@2');
+      const account = {
+        _id: faker.datatype.uuid(),
+        status: StatusEnum.VERIFIED,
+        role: RoleEnum.DEFAULT,
+        email: faker.internet.email(),
+        password: getEncryptedPassword(currentPassword),
+        person: faker.datatype.uuid(),
+        details: {
+          lastFailedSignInAttemptDate: subMinutes(new Date(), 3),
+          countFailedSignInAttempts: 6,
+        },
+      };
+      const accountGetByEmailSpy = jest.spyOn(AccountRepository.prototype, 'getByEmail').mockResolvedValueOnce(account as any);
+      const accountGetByNicknameSpy = jest.spyOn(AccountRepository.prototype, 'getByNickname');
+      const saveLastSignInSpy = jest.spyOn(AccountRepository.prototype, 'saveLastSignIn');
+
+      const result = service.signIn(account.email, currentPassword, false);
+
+      await expect(result).rejects.toThrow(new ValidationError('SIGN_IN_MANY_FAILED_ATTEMPTS', { value: 1 }));
+      expect(accountGetByEmailSpy).toHaveBeenCalledTimes(1);
+      expect(accountGetByNicknameSpy).toHaveBeenCalledTimes(0);
+      expect(saveLastSignInSpy).toHaveBeenCalledTimes(0);
+
+      accountGetByEmailSpy.mockReset();
+      accountGetByNicknameSpy.mockReset();
+      saveLastSignInSpy.mockReset();
+    });
+
+    it('should throw an exception if password invalid', async () => {
+      expect.assertions(5);
+
+      const service = new AccountService();
+
+      const currentPassword = faker.internet.password(20, false, /\w/, '@2');
+      const account = {
+        _id: faker.datatype.uuid(),
+        status: StatusEnum.VERIFIED,
+        role: RoleEnum.DEFAULT,
+        email: faker.internet.email(),
+        password: getEncryptedPassword(currentPassword),
+        person: faker.datatype.uuid(),
+        details: {
+        },
+      };
+      const accountGetByEmailSpy = jest.spyOn(AccountRepository.prototype, 'getByEmail').mockResolvedValueOnce(account as any);
+      const accountGetByNicknameSpy = jest.spyOn(AccountRepository.prototype, 'getByNickname');
+      const saveLastSignInSpy = jest.spyOn(AccountRepository.prototype, 'saveLastSignIn');
+      const increaseFailedSignInSpy = jest.spyOn(AccountRepository.prototype, 'increaseFailedSignIn').mockResolvedValueOnce();
+
+      const result = service.signIn(account.email, faker.internet.password(20, false, /\w/, '@2'), false);
+
+      await expect(result).rejects.toThrow(new ValidationError('PASSWORD_INVALID'));
+      expect(accountGetByEmailSpy).toHaveBeenCalledTimes(1);
+      expect(accountGetByNicknameSpy).toHaveBeenCalledTimes(0);
+      expect(saveLastSignInSpy).toHaveBeenCalledTimes(0);
+      expect(increaseFailedSignInSpy).toHaveBeenCalledTimes(1);
+
+      accountGetByEmailSpy.mockReset();
+      accountGetByNicknameSpy.mockReset();
+      saveLastSignInSpy.mockReset();
+      increaseFailedSignInSpy.mockReset();
+    });
+
+    it('should throw an exception if invalid environment was provided', async () => {
+      expect.assertions(4);
+
+      const service = new AccountService();
+
+      process.env = {};
+      const currentPassword = faker.internet.password(20, false, /\w/, '@2');
+      const account = {
+        _id: faker.datatype.uuid(),
+        status: StatusEnum.VERIFIED,
+        role: RoleEnum.DEFAULT,
+        email: faker.internet.email(),
+        password: getEncryptedPassword(currentPassword),
+        person: faker.datatype.uuid(),
+        details: {
+        },
+      };
+      const accountGetByEmailSpy = jest.spyOn(AccountRepository.prototype, 'getByEmail').mockResolvedValueOnce(account as any);
+      const accountGetByNicknameSpy = jest.spyOn(AccountRepository.prototype, 'getByNickname');
+      const saveLastSignInSpy = jest.spyOn(AccountRepository.prototype, 'saveLastSignIn');
+
+      const result = service.signIn(account.email, currentPassword, false);
+
+      await expect(result).rejects.toThrow(new ValidationError('INTERNAL_ERROR_INVALID_ENV'));
+      expect(accountGetByEmailSpy).toHaveBeenCalledTimes(1);
+      expect(accountGetByNicknameSpy).toHaveBeenCalledTimes(0);
+      expect(saveLastSignInSpy).toHaveBeenCalledTimes(0);
+
+      accountGetByEmailSpy.mockReset();
+      accountGetByNicknameSpy.mockReset();
+      saveLastSignInSpy.mockReset();
     });
   });
 });

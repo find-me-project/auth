@@ -62,5 +62,6 @@
 	"ACCESS_DATA_INVALID": "Access data is invalid",
 	"PASSWORD_INVALID": "Password is invalid",
 	"USER_DISCONNECTED": "User disconnected",
-	"ACCOUNT_ACTIVATED": "Account activated"
+	"ACCOUNT_ACTIVATED": "Account activated",
+	"SIGN_IN_MANY_FAILED_ATTEMPTS": "Many failed sign in attempts. Try again in {value} min"
 }

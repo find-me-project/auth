@@ -261,8 +261,9 @@ export class AccountService {
     if (details && details.lastFailedSignInAttemptDate && details.countFailedSignInAttempts && details.countFailedSignInAttempts > 3) {
       const lastFailedSignInTimeDiff = differenceInMinutes(new Date(), details.lastFailedSignInAttemptDate);
       const signInDelay = details.countFailedSignInAttempts * 0.5;
-      if (lastFailedSignInTimeDiff < signInDelay) {
-        throw new ValidationError('SIGN_IN_MANY_FAILED_ATTEMPTS', { value: signInDelay - lastFailedSignInTimeDiff || 1 });
+      if (lastFailedSignInTimeDiff <= signInDelay) {
+        const delay = signInDelay - lastFailedSignInTimeDiff || 1;
+        throw new ValidationError('SIGN_IN_MANY_FAILED_ATTEMPTS', { value: delay });
       }
     }
 
@@ -320,10 +321,10 @@ export class AccountService {
 
     await this.canSignIn(account, password);
 
-    await this.repository.saveLastSignIn(account._id!);
-
     const person = account.person as PersonType;
     const token = AccountService.getToken(account._id!, person._id!, account.status!, account.role!);
+
+    await this.repository.saveLastSignIn(account._id!);
 
     return token;
   }
