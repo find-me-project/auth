@@ -307,7 +307,10 @@ export class AccountService {
     return token;
   }
 
-  async signIn (data: string, password: string, isNickname: boolean): Promise<string> {
+  async signIn (data: string, password: string, isNickname: boolean): Promise<{
+    token: string,
+    account: AccountType,
+  }> {
     let account;
     if (isNickname) {
       account = await this.repository.getByNickname(data);
@@ -326,6 +329,13 @@ export class AccountService {
 
     await this.repository.saveLastSignIn(account._id!);
 
-    return token;
+    return {
+      token: token,
+      account: {
+        ...account,
+        password: undefined,
+        details: undefined,
+      },
+    };
   }
 }

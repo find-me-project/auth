@@ -79,6 +79,10 @@ export class AccountRepository implements IAccountRepository {
       .populate('person')
       .exec();
 
+    if (result) {
+      return result.toJSON();
+    }
+
     return result;
   }
 
@@ -93,6 +97,10 @@ export class AccountRepository implements IAccountRepository {
       .populate('details')
       .populate('person')
       .exec();
+
+    if (result) {
+      return result.toJSON();
+    }
 
     return result;
   }

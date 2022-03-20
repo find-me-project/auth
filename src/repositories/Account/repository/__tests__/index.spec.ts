@@ -149,7 +149,9 @@ describe('account repository', () => {
       accountFindOneSpy.mockImplementationOnce((): any => ({
         populate: jest.fn().mockImplementationOnce(() => ({
           populate: jest.fn().mockImplementationOnce(() => ({
-            exec: jest.fn().mockReturnValueOnce({ _id: id } as any),
+            exec: jest.fn().mockImplementationOnce(() => ({
+              toJSON: jest.fn().mockReturnValueOnce({ _id: id } as any),
+            })),
           })),
         })),
       }));
@@ -186,7 +188,9 @@ describe('account repository', () => {
       accountFindOneSpy.mockImplementationOnce((): any => ({
         populate: jest.fn().mockImplementationOnce(() => ({
           populate: jest.fn().mockImplementationOnce(() => ({
-            exec: jest.fn().mockReturnValueOnce({ _id: id } as any),
+            exec: jest.fn().mockImplementationOnce(() => ({
+              toJSON: jest.fn().mockReturnValueOnce({ _id: id } as any),
+            })),
           })),
         })),
       }));

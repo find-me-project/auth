@@ -11,11 +11,12 @@ async function method (request: Request, response: Response, session?: ClientSes
   } = request.body;
 
   const service = new AccountService(session);
-  const token = await service.signIn(accessData, password, isNickname);
+  const { token, account } = await service.signIn(accessData, password, isNickname);
 
   return response.success({
     token: token,
-  }, 'SAVED');
+    account: account,
+  }, 'SIGN_SUCCESS');
 }
 
 export default {
