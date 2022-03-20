@@ -64,5 +64,5 @@
 	"USER_DISCONNECTED": "User disconnected",
 	"ACCOUNT_ACTIVATED": "Account activated",
 	"SIGN_IN_MANY_FAILED_ATTEMPTS": "Many failed sign in attempts. Try again in {value} min",
-	"SIGN_SUCCESS": "Sign in successful"
+	"SIGN_IN_SUCCESS": "Sign in successful"
 }

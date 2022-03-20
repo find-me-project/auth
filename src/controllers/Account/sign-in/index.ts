@@ -16,7 +16,7 @@ async function method (request: Request, response: Response, session?: ClientSes
   return response.success({
     token: token,
     account: account,
-  }, 'SIGN_SUCCESS');
+  }, 'SIGN_IN_SUCCESS');
 }
 
 export default {
